@@ -7,7 +7,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #1a1a1a; /* Fondo oscuro para resaltar las ilustraciones */
+            background-color: #1a1a1a; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,11 +16,10 @@
             perspective: 1800px;
         }
 
-        /* El contenedor ahora se adapta a la proporción de una página de PDF real */
         .book-container {
             position: relative;
             width: 350px; 
-            height: 500px; /* Ajusta esto según si el PDF es más cuadrado o rectangular */
+            height: 500px; 
             transition: transform 0.6s ease;
         }
 
@@ -44,11 +43,10 @@
         .back { transform: rotateY(180deg); }
         .page.flipped { transform: rotateY(-180deg); }
 
-        /* Las imágenes ocuparán el 100% de la cara de la página */
         img.page-img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Asegura que la imagen llene el espacio sin deformarse */
+            object-fit: cover; 
             border-radius: 2px;
         }
 
@@ -66,30 +64,36 @@
 <body>
 
     <div class="book-container" id="bookContainer">
-        <div class="book">
-
-            <div class="page" id="p1">
-                <div class="front">
-                    <img src="imagenes/pagina_1.jpg" alt="Portada" class="page-img">
-                </div>
-                <div class="back">
-                    <img src="imagenes/pagina_2.jpg" alt="Página 2" class="page-img">
-                </div>
-            </div>
-
-            <div class="page" id="p2">
-                <div class="front">
-                    <img src="imagenes/pagina_3.jpg" alt="Página 3" class="page-img">
-                </div>
-                <div class="back">
-                    <img src="imagenes/pagina_4.jpg" alt="Página 4" class="page-img">
-                </div>
-            </div>
-
-            </div>
+        <div class="book" id="book"></div>
     </div>
 
     <script>
+        // 1. Generador automático de las 56 páginas
+        const book = document.getElementById('book');
+        const totalPages = 56; // Total de imágenes
+        let htmlContent = '';
+
+        for (let i = 1; i <= totalPages; i += 2) {
+            // Formatea los números para que siempre tengan dos dígitos (01, 02, etc.)
+            let frontNum = i < 10 ? '0' + i : i;
+            let backNum = (i + 1) < 10 ? '0' + (i + 1) : (i + 1);
+            
+            // Crea el bloque de la hoja
+            htmlContent += `
+            <div class="page" id="p${Math.ceil(i/2)}">
+                <div class="front">
+                    <img src="${frontNum}.png" alt="Página ${frontNum}" class="page-img">
+                </div>
+                <div class="back">
+                    <img src="${backNum}.png" alt="Página ${backNum}" class="page-img">
+                </div>
+            </div>`;
+        }
+        
+        // Inserta las páginas en el libro
+        book.innerHTML = htmlContent;
+
+        // 2. Lógica de animación y z-index
         const container = document.getElementById('bookContainer');
         const fronts = document.querySelectorAll('.front');
         const backs = document.querySelectorAll('.back');
@@ -130,6 +134,8 @@
                 container.classList.remove('open-book');
             }
         }
+        
+        // Inicializar
         updateZIndices();
     </script>
 </body>
