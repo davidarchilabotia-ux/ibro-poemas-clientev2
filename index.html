@@ -78,14 +78,14 @@
             let frontNum = i < 10 ? '0' + i : i;
             let backNum = (i + 1) < 10 ? '0' + (i + 1) : (i + 1);
             
-            // Crea el bloque de la hoja
+            // Crea el bloque de la hoja buscando archivos .jpg
             htmlContent += `
             <div class="page" id="p${Math.ceil(i/2)}">
                 <div class="front">
-                    <img src="${frontNum}.png" alt="Página ${frontNum}" class="page-img">
+                    <img src="${frontNum}.jpg" alt="Página ${frontNum}" class="page-img">
                 </div>
                 <div class="back">
-                    <img src="${backNum}.png" alt="Página ${backNum}" class="page-img">
+                    <img src="${backNum}.jpg" alt="Página ${backNum}" class="page-img">
                 </div>
             </div>`;
         }
