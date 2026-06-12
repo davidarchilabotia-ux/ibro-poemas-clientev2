@@ -14,6 +14,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             perspective: 1800px;
+            font-family: 'Georgia', serif;
         }
 
         .book-container {
@@ -50,11 +51,62 @@
             border-radius: 2px;
         }
 
+        /* Reproductor de Audio Flotante */
+        #audio-widget {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(18, 24, 29, 0.95);
+            border: 1px solid #dcb871;
+            border-radius: 30px;
+            padding: 10px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            color: #dcb871;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        #audio-widget.hidden { 
+            opacity: 0; 
+            pointer-events: none; 
+            transform: translate(-50%, 20px); 
+        }
+
+        #play-btn {
+            background: #dcb871;
+            color: #12181d;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        #play-btn:active { transform: scale(0.9); }
+        
+        .audio-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .audio-title { font-size: 15px; font-style: italic; letter-spacing: 0.5px; }
+        .audio-subtitle { font-size: 11px; color: #a38c5b; text-transform: uppercase; letter-spacing: 1px; }
+
         @media (max-width: 768px) {
-            .book-container {
-                width: 85vw; height: 65vh; max-width: 400px; max-height: 600px;
-            }
+            .book-container { width: 85vw; height: 65vh; max-width: 400px; max-height: 600px; }
             .book-container.open-book { transform: translateX(15%); }
+            #audio-widget { bottom: 20px; padding: 8px 20px; }
+            #play-btn { width: 35px; height: 35px; font-size: 16px; }
+            .audio-title { font-size: 14px; }
         }
         @media (min-width: 769px) {
             .book-container.open-book { transform: translateX(175px); }
@@ -67,18 +119,25 @@
         <div class="book" id="book"></div>
     </div>
 
+    <div id="audio-widget" class="hidden">
+        <button id="play-btn">▶</button>
+        <div class="audio-info">
+            <span class="audio-subtitle">Escuchando</span>
+            <span class="audio-title" id="audio-title">Sonido</span>
+        </div>
+        <audio id="bg-audio"></audio>
+    </div>
+
     <script>
-        // 1. Generador automático de las 56 páginas
+        // 1. Generar automáticamente las 56 páginas buscando imágenes .jpg
         const book = document.getElementById('book');
-        const totalPages = 56; // Total de imágenes
+        const totalPages = 56; 
         let htmlContent = '';
 
         for (let i = 1; i <= totalPages; i += 2) {
-            // Formatea los números para que siempre tengan dos dígitos (01, 02, etc.)
             let frontNum = i < 10 ? '0' + i : i;
             let backNum = (i + 1) < 10 ? '0' + (i + 1) : (i + 1);
             
-            // Crea el bloque de la hoja buscando archivos .jpg
             htmlContent += `
             <div class="page" id="p${Math.ceil(i/2)}">
                 <div class="front">
@@ -89,20 +148,103 @@
                 </div>
             </div>`;
         }
-        
-        // Inserta las páginas en el libro
         book.innerHTML = htmlContent;
 
-        // 2. Lógica de animación y z-index
+        // 2. Base de datos con los 21 poemas sincronizados por páginas
+        const audioData = {
+            // 1. pg 9-11
+            4: { title: "Mi gata Paca", src: "01.mp3" },
+            5: { title: "Mi gata Paca", src: "01.mp3" },
+            
+            // 2. pg 12-13
+            6: { title: "Mirla Patiamarilla", src: "02.mp3" },
+            
+            // 3. pg 14-15
+            7: { title: "Tirano melancólico", src: "03.mp3" },
+            
+            // 4. pg 16-17
+            8: { title: "Loro corona azul. ", src: "04.mp3" },
+            
+            // 5. pg 18-21
+            9: { title: "Colibrí chillón.", src: "05.mp3" },
+            10: { title: "Colibrí chillón.", src: "05.mp3" },
+            
+            // 6. pg 22-23
+            11: { title: "Copetón", src: "06.mp3" },
+            
+            // 7. pg 24-25
+            12: { title: "Tangara Verde", src: "07.mp3" },
+            
+            // 8. pg 26-27
+            13: { title: "Garcita bueyera", src: "08.mp3" },
+            
+            // 9. pg 28-29
+            14: { title: "Alcaraván", src: "09.mp3" },
+            
+            // 10. pg 30-31
+            15: { title: "Turpial Toche", src: "10.mp3" },
+            
+            // 11. pg 32-33
+            16: { title: "Cóndor de los Andes", src: "11.mp3" },
+            
+            // 12. pg 34-35
+            17: { title: "Guacamayo rojo", src: "12.mp3" },
+            
+            // 13. pg 36-37
+            18: { title: "Flamencos rosados.", src: "13.mp3" },
+            
+            // 14. pg 38-41
+            19: { title: "Mi gato Thor", src: "14.mp3" },
+            20: { title: "Mi gato Thor", src: "14.mp3" },
+            
+            // 15. pg 42-43
+            21: { title: "Golondrina Barranquera", src: "15.mp3" },
+            
+            // 16. pg 44-45
+            22: { title: "Martín Pescador", src: "16.mp3" },
+            
+            // 17. pg 46-47
+            23: { title: "Oropéndola Crestada", src: "17.mp3" },
+            
+            // 18. pg 48-49
+            24: { title: "Pato Turrio Andino", src: "18.mp3" },
+            
+            // 19. pg 50-51
+            25: { title: "Barranquero Andino", src: "19.mp3" },
+            
+            // 20. pg 52-53
+            26: { title: "Quetzal Crestado", src: "20.mp3" },
+            
+            // 21. pg 54-55
+            27: { title: "Cardenal Guajiro", src: "21.mp3" }
+        };
+
+        // 3. Lógica del libro interactivo y control de reproducción
         const container = document.getElementById('bookContainer');
         const fronts = document.querySelectorAll('.front');
         const backs = document.querySelectorAll('.back');
         
+        const audioWidget = document.getElementById('audio-widget');
+        const audioTitle = document.getElementById('audio-title');
+        const bgAudio = document.getElementById('bg-audio');
+        const playBtn = document.getElementById('play-btn');
+
+        playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (bgAudio.paused) {
+                bgAudio.play();
+                playBtn.innerHTML = '⏸';
+            } else {
+                bgAudio.pause();
+                playBtn.innerHTML = '▶';
+            }
+        });
+
         fronts.forEach((front) => {
             front.addEventListener('click', (e) => {
                 e.stopPropagation();
                 front.parentElement.classList.add('flipped');
-                updateZIndices(); updateBookPosition();
+                updateZIndices(); updateBookPosition(); checkAudio();
             });
         });
 
@@ -110,7 +252,7 @@
             back.addEventListener('click', (e) => {
                 e.stopPropagation();
                 back.parentElement.classList.remove('flipped');
-                updateZIndices(); updateBookPosition();
+                updateZIndices(); updateBookPosition(); checkAudio();
             });
         });
 
@@ -134,8 +276,24 @@
                 container.classList.remove('open-book');
             }
         }
+
+        function checkAudio() {
+            const flippedCount = document.querySelectorAll('.page.flipped').length;
+            
+            if (audioData[flippedCount]) {
+                audioWidget.classList.remove('hidden');
+                if (bgAudio.getAttribute('src') !== audioData[flippedCount].src) {
+                    bgAudio.src = audioData[flippedCount].src;
+                    audioTitle.innerText = audioData[flippedCount].title;
+                    playBtn.innerHTML = '▶';
+                }
+            } else {
+                audioWidget.classList.add('hidden');
+                bgAudio.pause();
+                playBtn.innerHTML = '▶';
+            }
+        }
         
-        // Inicializar
         updateZIndices();
     </script>
 </body>
