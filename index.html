@@ -180,31 +180,29 @@
         const bgAudio = document.getElementById('bg-audio');
         const playBtn = document.getElementById('play-btn');
 
+        // Base de datos sincronizada con las páginas izquierda/derecha exactas que me diste
         const audioData = {
-            4: { title: "Mi gata Paca", src: "01.mp3" },
-            5: { title: "Mi gata Paca", src: "01.mp3" },
-            6: { title: "Mirla Patiamarilla", src: "02.mp3" },
-            7: { title: "Tirano melancólico", src: "03.mp3" },
-            8: { title: "Loro corona azul. ", src: "04.mp3" },
-            9: { title: "Colibrí chillón.", src: "05.mp3" },
-            10: { title: "Colibrí chillón.", src: "05.mp3" },
-            11: { title: "Copetón", src: "06.mp3" },
-            12: { title: "Tangara Verde", src: "07.mp3" },
-            13: { title: "Garcita bueyera", src: "08.mp3" },
-            14: { title: "Alcaraván", src: "09.mp3" },
-            15: { title: "Turpial Toche", src: "10.mp3" },
-            16: { title: "Cóndor de los Andes", src: "11.mp3" },
-            17: { title: "Guacamayo rojo", src: "12.mp3" },
-            18: { title: "Flamencos rosados.", src: "13.mp3" },
-            19: { title: "Mi gato Thor", src: "14.mp3" },
-            20: { title: "Mi gato Thor", src: "14.mp3" },
-            21: { title: "Golondrina Barranquera", src: "15.mp3" },
-            22: { title: "Martín Pescador", src: "16.mp3" },
-            23: { title: "Oropéndola Crestada", src: "17.mp3" },
-            24: { title: "Pato Turrio Andino", src: "18.mp3" },
-            25: { title: "Barranquero Andino", src: "19.mp3" },
-            26: { title: "Quetzal Crestado", src: "20.mp3" },
-            27: { title: "Cardenal Guajiro", src: "21.mp3" }
+            8:  { title: "Mi gata Paca", src: "01.mp3" },          // Páginas 8-9
+            12: { title: "Mirla Patiamarilla", src: "02.mp3" },   // Páginas 12-13
+            14: { title: "Tirano melancólico", src: "03.mp3" },   // Páginas 14-15
+            16: { title: "Loro corona azul", src: "04.mp3" },     // Páginas 16-17
+            18: { title: "Colibrí chillón", src: "05.mp3" },      // Páginas 18-19
+            22: { title: "Copetón", src: "06.mp3" },              // Páginas 22-23
+            24: { title: "Tangara Verde", src: "07.mp3" },        // Páginas 24-25
+            26: { title: "Garcita bueyera", src: "08.mp3" },      // Páginas 26-27
+            28: { title: "Alcaraván", src: "09.mp3" },            // Páginas 28-29
+            30: { title: "Turpial Toche", src: "10.mp3" },        // Páginas 30-31
+            32: { title: "Cóndor de los Andes", src: "11.mp3" },  // Páginas 32-33
+            34: { title: "Guacamayo rojo", src: "12.mp3" },       // Páginas 34-35
+            36: { title: "Flamencos rosados", src: "13.mp3" },    // Páginas 36-37
+            38: { title: "Mi gato Thor", src: "14.mp3" },         // Páginas 38-39
+            42: { title: "Golondrina Barranquera", src: "15.mp3" },// Páginas 42-43
+            44: { title: "Martín Pescador", src: "16.mp3" },    // Páginas 44-45
+            46: { title: "Oropéndola Crestada", src: "17.mp3" }, // Páginas 46-47
+            48: { title: "Pato Turrio Andino", src: "18.mp3" },  // Páginas 48-49
+            50: { title: "Barranquero Andino", src: "19.mp3" },  // Páginas 50-51
+            52: { title: "Quetzal Crestado", src: "20.mp3" },   // Páginas 52-53
+            54: { title: "Cardenal Guajiro", src: "21.mp3" }     // Páginas 54-55
         };
 
         playBtn.addEventListener('click', (e) => {
@@ -219,7 +217,6 @@
         });
 
         function updateView() {
-            // Si es la página 1 o la última página, se muestra individual (portada / contraportada)
             const isSingle = (currentPage === 1 || currentPage === totalPages);
 
             if (isSingle) {
@@ -246,14 +243,14 @@
                 rightImg.style.opacity = 1;
             }, 100);
 
-            // Sincronización del audio
-            const currentSpreadIndex = Math.ceil(currentPage / 2) - 1;
+            // Sincronización basada directamente en el número de la página izquierda actual
+            const audioEntry = audioData[currentPage];
 
-            if (audioData[currentSpreadIndex] && !isSingle) {
+            if (audioEntry && !isSingle) {
                 audioWidget.classList.remove('hidden');
-                if (bgAudio.getAttribute('src') !== audioData[currentSpreadIndex].src) {
-                    bgAudio.src = audioData[currentSpreadIndex].src;
-                    audioTitle.innerText = audioData[currentSpreadIndex].title;
+                if (bgAudio.getAttribute('src') !== audioEntry.src) {
+                    bgAudio.src = audioEntry.src;
+                    audioTitle.innerText = audioEntry.title;
                     playBtn.innerHTML = '▶';
                 }
             } else {
@@ -263,23 +260,22 @@
             }
         }
 
-        // Navegación inteligente adaptada a páginas sueltas o dobles
         function nextPage() {
             if (currentPage === 1) {
-                currentPage = 2; // Salta de la portada (1) a la primera doble página (2-3)
+                currentPage = 2; 
             } else if (currentPage < totalPages - 1) {
                 currentPage += 2;
             } else if (currentPage === totalPages - 1) {
-                currentPage = totalPages; // Llega a la contraportada final
+                currentPage = totalPages; 
             }
             updateView();
         }
 
         function prevPage() {
             if (currentPage === totalPages) {
-                currentPage = totalPages - 1; // Vuelve de la contraportada a la última doble página
+                currentPage = totalPages - 1; 
             } else if (currentPage === 2) {
-                currentPage = 1; // Vuelve a la portada solitaria
+                currentPage = 1; 
             } else if (currentPage > 2) {
                 currentPage -= 2;
             }
