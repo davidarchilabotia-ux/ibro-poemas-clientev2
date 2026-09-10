@@ -2,25 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>El canto que acompañó mi silencio</title>
     <style>
+        :root {
+            /* La página puede crecer hasta el equivalente visual del zoom al 200 %. */
+            --page-max-width: 700px;
+            --screen-gap: 24px;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
         body {
             background-color: #1a1a1a; 
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            min-height: 100dvh;
+            padding: 16px 16px 110px;
+            overflow: hidden;
             perspective: 1800px;
             font-family: 'Georgia', serif;
         }
 
         .book-container {
             position: relative;
-            width: 350px; 
-            height: 500px; 
+            /*
+              El primer límite amplía el libro en pantallas grandes.
+              El segundo garantiza que las dos páginas abiertas quepan a lo ancho.
+              El tercero reserva espacio vertical para el reproductor.
+            */
+            width: min(var(--page-max-width), calc(50vw - var(--screen-gap)), calc(70vh - 98px));
+            width: min(var(--page-max-width), calc(50vw - var(--screen-gap)), calc(70dvh - 98px));
+            aspect-ratio: 7 / 10;
+            height: auto;
+            min-width: 0;
             transition: transform 0.6s ease;
         }
 
@@ -54,9 +76,11 @@
         /* Reproductor de Audio Flotante */
         #audio-widget {
             position: fixed;
-            bottom: 30px;
+            bottom: 16px;
+            bottom: max(16px, env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
+            width: min(420px, calc(100vw - 24px));
             background: rgba(18, 24, 29, 0.95);
             border: 1px solid #dcb871;
             border-radius: 30px;
@@ -88,6 +112,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex: 0 0 auto;
             transition: transform 0.2s;
         }
 
@@ -96,20 +121,45 @@
         .audio-info {
             display: flex;
             flex-direction: column;
+            flex: 1;
+            min-width: 0;
         }
 
-        .audio-title { font-size: 15px; font-style: italic; letter-spacing: 0.5px; }
+        .audio-title {
+            max-width: calc(100vw - 105px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 15px;
+            font-style: italic;
+            letter-spacing: 0.5px;
+        }
         .audio-subtitle { font-size: 11px; color: #a38c5b; text-transform: uppercase; letter-spacing: 1px; }
 
+        /* Al abrirse, el lomo queda exactamente en el centro de la pantalla. */
+        .book-container.open-book { transform: translateX(50%); }
+
         @media (max-width: 768px) {
-            .book-container { width: 85vw; height: 65vh; max-width: 400px; max-height: 600px; }
-            .book-container.open-book { transform: translateX(15%); }
-            #audio-widget { bottom: 20px; padding: 8px 20px; }
+            #audio-widget { padding: 8px 16px; gap: 10px; }
             #play-btn { width: 35px; height: 35px; font-size: 16px; }
             .audio-title { font-size: 14px; }
         }
-        @media (min-width: 769px) {
-            .book-container.open-book { transform: translateX(175px); }
+
+        /* Ajuste adicional para ventanas bajas o zoom elevado. */
+        @media (max-height: 480px) {
+            body { padding: 8px 8px 76px; }
+
+            .book-container {
+                width: min(var(--page-max-width), calc(50vw - 12px), calc(70vh - 70px));
+                width: min(var(--page-max-width), calc(50vw - 12px), calc(70dvh - 70px));
+            }
+
+            #audio-widget {
+                bottom: 8px;
+                padding: 6px 14px;
+            }
+
+            #play-btn { width: 32px; height: 32px; }
         }
     </style>
 </head>
