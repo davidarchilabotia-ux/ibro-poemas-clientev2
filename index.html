@@ -289,3 +289,62 @@
                 playBtn.innerHTML = '▶';
             }
         });
+
+        fronts.forEach((front) => {
+            front.addEventListener('click', (e) => {
+                e.stopPropagation();
+                front.parentElement.classList.add('flipped');
+                updateZIndices(); updateBookPosition(); checkAudio();
+            });
+        });
+
+        backs.forEach((back) => {
+            back.addEventListener('click', (e) => {
+                e.stopPropagation();
+                back.parentElement.classList.remove('flipped');
+                updateZIndices(); updateBookPosition(); checkAudio();
+            });
+        });
+
+        function updateZIndices() {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach((page, index) => {
+                if (page.classList.contains('flipped')) {
+                    page.style.zIndex = index + 1;
+                } else {
+                    page.style.zIndex = pages.length - index;
+                }
+            });
+        }
+
+        function updateBookPosition() {
+            const flippedPages = document.querySelectorAll('.page.flipped').length;
+            const totalPages = document.querySelectorAll('.page').length;
+            if (flippedPages > 0 && flippedPages < totalPages) {
+                container.classList.add('open-book');
+            } else {
+                container.classList.remove('open-book');
+            }
+        }
+
+        function checkAudio() {
+            const flippedCount = document.querySelectorAll('.page.flipped').length;
+            
+            if (audioData[flippedCount]) {
+                audioWidget.classList.remove('hidden');
+                if (bgAudio.getAttribute('src') !== audioData[flippedCount].src) {
+                    bgAudio.src = audioData[flippedCount].src;
+                    audioTitle.innerText = audioData[flippedCount].title;
+                    playBtn.innerHTML = '▶';
+                }
+            } else {
+                audioWidget.classList.add('hidden');
+                bgAudio.pause();
+                playBtn.innerHTML = '▶';
+            }
+        }
+        
+        updateZIndices();
+    </script>
+</body>
+</html>
