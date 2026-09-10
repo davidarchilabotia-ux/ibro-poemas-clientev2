@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>El canto que acompañó mi silencio</title>
     <style>
-        :root {
-            --screen-gap: 24px;
-        }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         html, body {
@@ -22,7 +18,6 @@
             font-family: 'Georgia', serif;
         }
 
-        /* Contenedor principal que ocupa todo el espacio disponible */
         .page-container {
             position: relative;
             width: 100vw;
@@ -31,20 +26,41 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 16px 16px 110px 16px; /* Mantiene el espacio inferior para el audio */
+            padding: 16px 16px 110px 16px; 
         }
 
-        /* La imagen se ajusta al máximo sin deformarse */
-        img#current-page {
+        /* Contenedor dinámico (por defecto muestra doble página) */
+        .spread {
+            display: flex;
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain;
-            border-radius: 4px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            aspect-ratio: 4 / 3;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            background-color: #fff;
+            transition: aspect-ratio 0.3s ease;
+        }
+
+        /* Cuando es una sola página (portada o contraportada) */
+        .spread.single-page {
+            aspect-ratio: 7 / 10;
+        }
+
+        .spread img {
+            width: 50%;
+            height: 100%;
+            object-fit: fill; 
             transition: opacity 0.2s ease;
         }
 
-        /* Zonas de clic transparentes para navegar (mitad izquierda y mitad derecha) */
+        /* Si es single-page, la imagen ocupa el 100% y la derecha se oculta */
+        .spread.single-page img#left-page {
+            width: 100%;
+        }
+        .spread.single-page img#right-page {
+            display: none;
+        }
+
+        /* Zonas de clic transparentes para avanzar o retroceder */
         .nav-area {
             position: absolute;
             top: 0;
@@ -56,7 +72,7 @@
         .nav-left { left: 0; }
         .nav-right { right: 0; }
 
-        /* Reproductor de Audio (Intacto) */
+        /* Reproductor de Audio */
         #audio-widget {
             position: fixed;
             bottom: 16px;
@@ -129,12 +145,15 @@
 <body>
 
     <div class="page-container">
-        <!-- Zonas de navegación invisibles -->
-        <div class="nav-area nav-left" id="prevBtn" title="Anterior"></div>
-        <div class="nav-area nav-right" id="nextBtn" title="Siguiente"></div>
+        <!-- Áreas de navegación -->
+        <div class="nav-area nav-left" id="prevBtn" title="Páginas anteriores"></div>
+        <div class="nav-area nav-right" id="nextBtn" title="Páginas siguientes"></div>
         
-        <!-- Una sola imagen que cambia su origen dinámicamente -->
-        <img id="current-page" src="01.jpg" alt="Página 1">
+        <!-- Contenedor del libro -->
+        <div class="spread" id="bookSpread">
+            <img id="left-page" src="01.jpg" alt="Página Izquierda">
+            <img id="right-page" src="02.jpg" alt="Página Derecha">
+        </div>
     </div>
 
     <div id="audio-widget" class="hidden">
@@ -147,10 +166,12 @@
     </div>
 
     <script>
-        let currentPage = 1;
+        let currentPage = 1; 
         const totalPages = 56;
         
-        const pageImg = document.getElementById('current-page');
+        const bookSpread = document.getElementById('bookSpread');
+        const leftImg = document.getElementById('left-page');
+        const rightImg = document.getElementById('right-page');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         
@@ -159,7 +180,6 @@
         const bgAudio = document.getElementById('bg-audio');
         const playBtn = document.getElementById('play-btn');
 
-        // Base de datos original
         const audioData = {
             4: { title: "Mi gata Paca", src: "01.mp3" },
             5: { title: "Mi gata Paca", src: "01.mp3" },
@@ -187,7 +207,6 @@
             27: { title: "Cardenal Guajiro", src: "21.mp3" }
         };
 
-        // Control del botón de reproducción
         playBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (bgAudio.paused) {
@@ -199,23 +218,38 @@
             }
         });
 
-        // Actualiza la imagen y sincroniza el audio correcto
         function updateView() {
-            // Formatea el número a 01, 02, etc.
-            const pageStr = currentPage < 10 ? '0' + currentPage : currentPage;
+            // Si es la página 1 o la última página, se muestra individual (portada / contraportada)
+            const isSingle = (currentPage === 1 || currentPage === totalPages);
+
+            if (isSingle) {
+                bookSpread.classList.add('single-page');
+            } else {
+                bookSpread.classList.remove('single-page');
+            }
+
+            const leftNum = currentPage;
+            const rightNum = currentPage + 1;
             
-            // Micro-animación de transición
-            pageImg.style.opacity = 0.5;
+            const leftStr = leftNum < 10 ? '0' + leftNum : leftNum;
+            const rightStr = rightNum < 10 ? '0' + rightNum : rightNum;
+            
+            leftImg.style.opacity = 0.5;
+            rightImg.style.opacity = 0.5;
+            
             setTimeout(() => {
-                pageImg.src = pageStr + '.jpg';
-                pageImg.alt = "Página " + currentPage;
-                pageImg.style.opacity = 1;
+                leftImg.src = leftStr + '.jpg';
+                if (!isSingle) {
+                    rightImg.src = rightStr + '.jpg';
+                }
+                leftImg.style.opacity = 1;
+                rightImg.style.opacity = 1;
             }, 100);
 
-            // Traducción de tu lógica anterior (flippedCount) a páginas individuales
+            // Sincronización del audio
             const currentSpreadIndex = Math.ceil(currentPage / 2) - 1;
 
-            if (audioData[currentSpreadIndex]) {
+            if (audioData[currentSpreadIndex] && !isSingle) {
                 audioWidget.classList.remove('hidden');
                 if (bgAudio.getAttribute('src') !== audioData[currentSpreadIndex].src) {
                     bgAudio.src = audioData[currentSpreadIndex].src;
@@ -229,33 +263,40 @@
             }
         }
 
-        // Eventos de navegación por clic
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                updateView();
+        // Navegación inteligente adaptada a páginas sueltas o dobles
+        function nextPage() {
+            if (currentPage === 1) {
+                currentPage = 2; // Salta de la portada (1) a la primera doble página (2-3)
+            } else if (currentPage < totalPages - 1) {
+                currentPage += 2;
+            } else if (currentPage === totalPages - 1) {
+                currentPage = totalPages; // Llega a la contraportada final
             }
-        });
+            updateView();
+        }
 
-        nextBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                updateView();
+        function prevPage() {
+            if (currentPage === totalPages) {
+                currentPage = totalPages - 1; // Vuelve de la contraportada a la última doble página
+            } else if (currentPage === 2) {
+                currentPage = 1; // Vuelve a la portada solitaria
+            } else if (currentPage > 2) {
+                currentPage -= 2;
             }
-        });
+            updateView();
+        }
 
-        // Eventos de navegación por teclado (flechas)
+        prevBtn.addEventListener('click', prevPage);
+        nextBtn.addEventListener('click', nextPage);
+
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' && currentPage < totalPages) {
-                currentPage++;
-                updateView();
-            } else if (e.key === 'ArrowLeft' && currentPage > 1) {
-                currentPage--;
-                updateView();
+            if (e.key === 'ArrowRight') {
+                nextPage();
+            } else if (e.key === 'ArrowLeft') {
+                prevPage();
             }
         });
 
-        // Inicializar la primera página
         updateView();
     </script>
 </body>
