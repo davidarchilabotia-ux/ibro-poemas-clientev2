@@ -69,8 +69,13 @@
         img.page-img {
             width: 100%;
             height: 100%;
-            object-fit: cover; 
+            object-fit: contain; /* Cambiado de cover a contain para evitar que el texto se recorte */
             border-radius: 2px;
+            
+            /* Forzar renderizado de alta calidad y evitar borrosidad en la transformación 3D */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: high-quality;
+            transform: translateZ(0); 
         }
 
         /* Reproductor de Audio Flotante */
